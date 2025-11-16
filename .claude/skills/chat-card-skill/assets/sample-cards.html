@@ -1,0 +1,115 @@
+<!-- Sample DaisyUI Chat Cards -->
+
+<!-- Card 1: Affirmative/Negative Response -->
+<div class="flex justify-center">
+    <div class="card bg-base-200 w-full max-w-sm shadow-md">
+        <div class="card-body p-4">
+            <h2 class="card-title text-sm">Confirm Action</h2>
+            <p class="text-xs">Would you like me to send this email to all team members?</p>
+            <div class="card-actions justify-end gap-2">
+                <button class="btn btn-error btn-xs">No</button>
+                <button class="btn btn-primary btn-xs">Yes, Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card 2: Multiple Choice -->
+<div class="flex justify-center">
+    <div class="card bg-base-200 w-full max-w-sm shadow-md">
+        <div class="card-body p-4">
+            <h2 class="card-title text-sm">Choose a Response Style</h2>
+            <p class="text-xs mb-2">How would you like me to respond?</p>
+            <ul class="text-xs space-y-1">
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="response-style" class="radio radio-xs" checked />
+                        <span>Concise and brief</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="response-style" class="radio radio-xs" />
+                        <span>Detailed explanation</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="response-style" class="radio radio-xs" />
+                        <span>Step-by-step guide</span>
+                    </label>
+                </li>
+            </ul>
+            <div class="card-actions justify-end mt-2">
+                <button class="btn btn-primary btn-xs">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card 3: Multiple Select -->
+<div class="flex justify-center">
+    <div class="card bg-base-200 w-full max-w-sm shadow-md">
+        <div class="card-body p-4">
+            <h2 class="card-title text-sm">Select Topics to Include</h2>
+            <p class="text-xs mb-2">Which sections should I include in the report?</p>
+            <ul class="text-xs space-y-1">
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" class="checkbox checkbox-xs" checked />
+                        <span>Executive Summary</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" class="checkbox checkbox-xs" checked />
+                        <span>Financial Analysis</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" class="checkbox checkbox-xs" />
+                        <span>Market Research</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" class="checkbox checkbox-xs" checked />
+                        <span>Recommendations</span>
+                    </label>
+                </li>
+            </ul>
+            <div class="card-actions justify-end mt-2">
+                <button class="btn btn-primary btn-xs">Generate Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card 4: Email Draft with Feedback -->
+<div class="flex justify-center">
+    <div class="card bg-base-100 border border-base-300 w-full max-w-sm shadow-md">
+        <div class="card-body p-4">
+            <h2 class="card-title text-sm">Email Draft</h2>
+            <div class="bg-base-200 p-3 rounded text-xs mb-3">
+                <div class="mb-2">
+                    <strong>To:</strong> team@company.com<br/>
+                    <strong>Subject:</strong> Q4 Planning Meeting
+                </div>
+                <div class="text-xs opacity-80">
+                    Hi Team,<br/><br/>
+                    I hope this message finds you well. I wanted to schedule our Q4 planning meeting for next week. Please review the attached agenda and let me know your availability.<br/><br/>
+                    Best regards
+                </div>
+            </div>
+            <textarea
+                class="textarea textarea-bordered textarea-sm w-full text-xs"
+                placeholder="Provide feedback or request changes..."
+                rows="2"></textarea>
+            <div class="card-actions justify-end mt-2 gap-2">
+                <button class="btn btn-ghost btn-xs">Revise</button>
+                <button class="btn btn-primary btn-xs">Send Draft</button>
+            </div>
+        </div>
+    </div>
+</div>

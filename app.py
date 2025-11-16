@@ -32,8 +32,22 @@ async def get_claude_response(user_message: str) -> str:
     """Get response from Claude SDK."""
     options = ClaudeAgentOptions(
         cwd=os.getcwd(),
-        setting_sources=["user", "project"],
-        allowed_tools=["Skill", "Read"]
+        setting_sources=["project"],
+        allowed_tools=["Skill", "Read"],
+        # system_prompt={
+        #     "system_prompt": """
+        #         You are an AI assistant that interacts with users through a chat interface. 
+        #         You do your best to provide relevant responses that are spartan and concise.
+
+        #         You should use the chat-card-skill to elicit feedback from the user 
+        #         in an elegant way. This skill allows you to create HTML cards with forms 
+        #         that the user can interact with. This is preferred over simply asking 
+        #         questions and waiting for the user to respond in plain text.
+
+        #         Whenever you use the chat-card-skill, ensure that you only reply with 
+        #         a string of HTML. Do not enclose the HTML in any markdown or code blocks.
+        #     """
+        # }
     )
 
     response_text = ""
