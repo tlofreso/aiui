@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block chat_messages %}
+    {% for message in messages %}
+        {% if message.is_loading %}
+            <div class="chat chat-start">
+                <div class="chat-bubble chat-bubble-primary">
+                    <span class="loading loading-ball loading-sm"></span>
+                </div>
+            </div>
+        {% elif message.message_type == 'card' %}
+            <div class="flex justify-center">
+                {{ message.html | safe }}
+            </div>
+        {% else %}
+            <div class="chat chat-{{ message.chat_type }}">
+                <div class="chat-bubble {% if message.chat_type == 'start' %}chat-bubble-primary{% endif %}">
+                    {{ message.content }}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Chat form submission
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const statusInfo = document.getElementById('status-info');
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        // Clear input
+        messageInput.value = '';
+
+        // Add user message to UI
+        addMessageToUI('end', message);
+
+        // Add loading indicator
+        const loadingDiv = addLoadingMessage();
+
+        // Update status
+        statusInfo.textContent = 'Sending...';
+
+        try {
+            // Send message to server
+            const response = await fetch('/api/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+
+            // Remove loading indicator
+            loadingDiv.remove();
+
+            if (data.status === 'success') {
+                // Add AI response to UI based on message type
+                if (data.response.message_type === 'card') {
+                    addCardToUI(data.response.html);
+                } else {
+                    addMessageToUI(data.response.chat_type, data.response.content);
+                }
+                statusInfo.textContent = 'Ready';
+            } else {
+                statusInfo.textContent = 'Error: ' + data.message;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            loadingDiv.remove();
+            statusInfo.textContent = 'Error sending message';
+        }
+    });
+
+    function addMessageToUI(type, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat chat-${type}`;
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = type === 'start' ? 'chat-bubble chat-bubble-primary' : 'chat-bubble';
+        bubbleDiv.textContent = content;
+
+        messageDiv.appendChild(bubbleDiv);
+        chatMessages.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addCardToUI(html) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex justify-center';
+        wrapper.innerHTML = html;
+
+        chatMessages.appendChild(wrapper);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addLoadingMessage() {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat chat-start';
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'chat-bubble chat-bubble-primary';
+
+        const loadingSpan = document.createElement('span');
+        loadingSpan.className = 'loading loading-ball loading-sm';
+
+        bubbleDiv.appendChild(loadingSpan);
+        messageDiv.appendChild(bubbleDiv);
+        chatMessages.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        return messageDiv;
+    }
+
+    // Auto-scroll to bottom on page load
+    window.addEventListener('load', () => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+</script>
+{% endblock %}
