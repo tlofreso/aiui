@@ -91,3 +91,25 @@ Adapt card patterns based on context:
 ## Output Format
 
 Generate complete, self-contained HTML snippets that can be directly inserted into a chat application. Ensure all necessary DaisyUI classes are included and properly structured.
+
+## CRITICAL: Required Data Attributes
+
+ALL interactive cards MUST include these data attributes for functionality:
+
+**1. Card Element:**
+- `data-card-type="[type]"` - Required on the card div
+- Values: "affirmative-negative", "multiple-choice", "multiple-select", or "content-preview"
+
+**2. Form Element:**
+- `data-card-form` - Required wrapper for form-based cards (all except affirmative-negative)
+- Use `<form data-card-form>` to wrap card content
+
+**3. Buttons:**
+- `data-card-action="[action]"` - Required on EVERY button
+- Values: "yes", "no", "submit", "skip", "send", "revise", etc.
+
+**4. Form Inputs:**
+- `name` attribute - Required for all inputs (radio, checkbox, textarea)
+- `value` attribute - Required for radio buttons and checkboxes
+
+**Without these attributes, the cards will not be interactive.** Always refer to the exact patterns in `references/card-patterns.md` - do not improvise or create custom structures.

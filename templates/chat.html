@@ -11,8 +11,26 @@
                 </div>
             </div>
         {% elif message.message_type == 'card' %}
-            <div class="flex justify-center">
-                {{ message.html | safe }}
+            <div class="flex justify-center" data-card-wrapper>
+                <div class="card-container">
+                    {{ message.html | safe }}
+                </div>
+                <script>
+                    // Add card_id to the card element
+                    (function() {
+                        const wrapper = document.currentScript.closest('[data-card-wrapper]');
+                        const card = wrapper.querySelector('.card');
+                        if (card) {
+                            card.setAttribute('data-card-id', '{{ message.card_id }}');
+                            {% if message.card_submitted %}
+                            card.setAttribute('data-submitted', 'true');
+                            card.style.opacity = '0.6';
+                            const formElements = card.querySelectorAll('button, input, textarea, select');
+                            formElements.forEach(el => el.disabled = true);
+                            {% endif %}
+                        }
+                    })();
+                </script>
             </div>
         {% else %}
             <div class="chat chat-{{ message.chat_type }}">
@@ -66,12 +84,14 @@
             loadingDiv.remove();
 
             if (data.status === 'success') {
-                // Add AI response to UI based on message type
-                if (data.response.message_type === 'card') {
-                    addCardToUI(data.response.html);
-                } else {
-                    addMessageToUI(data.response.chat_type, data.response.content);
-                }
+                // Add all responses to UI
+                data.responses.forEach(response => {
+                    if (response.message_type === 'card') {
+                        addCardToUI(response.html, response.card_id);
+                    } else {
+                        addMessageToUI(response.chat_type, response.content);
+                    }
+                });
                 statusInfo.textContent = 'Ready';
             } else {
                 statusInfo.textContent = 'Error: ' + data.message;
@@ -98,15 +118,25 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function addCardToUI(html) {
+    function addCardToUI(html, cardId = null) {
         const wrapper = document.createElement('div');
         wrapper.className = 'flex justify-center';
         wrapper.innerHTML = html;
+
+        // If cardId is provided, add it to the card
+        if (cardId) {
+            const card = wrapper.querySelector('.card');
+            if (card) {
+                card.setAttribute('data-card-id', cardId);
+            }
+        }
 
         chatMessages.appendChild(wrapper);
 
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        return wrapper;
     }
 
     function addLoadingMessage() {
@@ -127,6 +157,165 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         return messageDiv;
+    }
+
+    // Event delegation for card interactions
+    chatMessages.addEventListener('click', async (e) => {
+        // Check if clicked element is a button with data-card-action
+        const button = e.target.closest('button[data-card-action]');
+        if (!button) return;
+
+        // Find the card element
+        const card = button.closest('.card[data-card-id]');
+        if (!card) return;
+
+        // Check if card has already been submitted
+        if (card.hasAttribute('data-submitted')) return;
+
+        const cardId = card.getAttribute('data-card-id');
+        const action = button.getAttribute('data-card-action');
+
+        // Extract form data
+        const formData = extractCardFormData(card);
+
+        // Disable and show feedback
+        disableCard(card, action, formData);
+
+        // Add loading indicator
+        const loadingDiv = addLoadingMessage();
+        statusInfo.textContent = 'Processing...';
+
+        try {
+            // Send card action to server
+            const response = await fetch('/api/card_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    card_id: cardId,
+                    action: action,
+                    data: formData
+                })
+            });
+
+            const data = await response.json();
+
+            // Remove loading indicator
+            loadingDiv.remove();
+
+            if (data.status === 'success') {
+                // Add all responses to UI
+                data.responses.forEach(response => {
+                    if (response.message_type === 'card') {
+                        addCardToUI(response.html, response.card_id);
+                    } else {
+                        addMessageToUI(response.chat_type, response.content);
+                    }
+                });
+                statusInfo.textContent = 'Ready';
+            } else {
+                statusInfo.textContent = 'Error: ' + data.message;
+                // Re-enable card on error
+                enableCard(card);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            loadingDiv.remove();
+            statusInfo.textContent = 'Error processing card action';
+            // Re-enable card on error
+            enableCard(card);
+        }
+    });
+
+    // Handle form submissions within cards
+    chatMessages.addEventListener('submit', async (e) => {
+        const form = e.target.closest('form[data-card-form]');
+        if (!form) return;
+
+        e.preventDefault();
+
+        // Find submit button that was clicked (if any)
+        const submitButton = e.submitter || form.querySelector('button[type="submit"]');
+        if (submitButton && submitButton.hasAttribute('data-card-action')) {
+            // Let the click handler deal with it
+            submitButton.click();
+        }
+    });
+
+    function extractCardFormData(card) {
+        const formData = {};
+        const form = card.querySelector('form[data-card-form]');
+
+        if (!form) return formData;
+
+        // Get all form inputs
+        const inputs = form.querySelectorAll('input, textarea, select');
+
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (!name) return;
+
+            if (input.type === 'radio') {
+                if (input.checked) {
+                    formData[name] = input.value;
+                }
+            } else if (input.type === 'checkbox') {
+                if (!formData[name]) {
+                    formData[name] = [];
+                }
+                if (input.checked) {
+                    formData[name].push(input.value);
+                }
+            } else if (input.tagName === 'TEXTAREA' || input.tagName === 'SELECT' || input.type === 'text') {
+                formData[name] = input.value;
+            }
+        });
+
+        return formData;
+    }
+
+    function disableCard(card, action, formData) {
+        // Mark as submitted
+        card.setAttribute('data-submitted', 'true');
+
+        // Disable all form elements
+        const formElements = card.querySelectorAll('button, input, textarea, select');
+        formElements.forEach(el => {
+            el.disabled = true;
+        });
+
+        // Add visual feedback
+        card.style.opacity = '0.6';
+
+        // Add submitted indicator
+        const cardBody = card.querySelector('.card-body');
+        if (cardBody) {
+            const indicator = document.createElement('div');
+            indicator.className = 'alert alert-success mt-2 py-1 px-2';
+            indicator.innerHTML = `<span class="text-xs">✓ Submitted: ${action}</span>`;
+            cardBody.appendChild(indicator);
+        }
+    }
+
+    function enableCard(card) {
+        // Remove submitted state
+        card.removeAttribute('data-submitted');
+
+        // Re-enable all form elements
+        const formElements = card.querySelectorAll('button, input, textarea, select');
+        formElements.forEach(el => {
+            el.disabled = false;
+        });
+
+        // Remove visual feedback
+        card.style.opacity = '1';
+
+        // Remove submitted indicator
+        const indicator = card.querySelector('.alert-success');
+        if (indicator) {
+            indicator.remove();
+        }
     }
 
     // Auto-scroll to bottom on page load

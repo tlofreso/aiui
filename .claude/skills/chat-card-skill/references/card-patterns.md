@@ -2,6 +2,18 @@
 
 This document contains reference patterns and examples for generating chat cards using DaisyUI components.
 
+## ⚠️ CRITICAL: Data Attributes Required for Interactivity
+
+**ALL cards MUST include the exact data attributes shown in the examples below:**
+
+1. `data-card-type` on the card element
+2. `data-card-form` on form wrapper (for form-based cards)
+3. `data-card-action` on ALL buttons
+4. `name` and `value` on all form inputs
+
+**Do not modify or omit these attributes - cards will NOT be interactive without them.**
+Copy the patterns exactly as shown.
+
 ## Core Design Principles
 
 - Cards are designed to be displayed inline within a chat application
@@ -26,18 +38,22 @@ Used when confirmation or yes/no decision is needed.
 **Example:**
 ```html
 <div class="flex justify-center">
-    <div class="card bg-base-200 w-full max-w-sm shadow-md">
+    <div class="card bg-base-200 w-full max-w-sm shadow-md" data-card-type="affirmative-negative">
         <div class="card-body p-4">
             <h2 class="card-title text-sm">Confirm Action</h2>
             <p class="text-xs">Would you like me to send this email to all team members?</p>
             <div class="card-actions justify-end gap-2">
-                <button class="btn btn-error btn-xs">No</button>
-                <button class="btn btn-primary btn-xs">Yes, Send</button>
+                <button class="btn btn-error btn-xs" data-card-action="no">No</button>
+                <button class="btn btn-primary btn-xs" data-card-action="yes">Yes, Send</button>
             </div>
         </div>
     </div>
 </div>
 ```
+
+**Data Attributes:**
+- `data-card-type="affirmative-negative"` - Identifies the card type for proper handling
+- `data-card-action="no"` / `data-card-action="yes"` - Identifies which action was taken
 
 ### 2. Multiple Choice (Radio) Cards
 
@@ -54,37 +70,46 @@ Used when user needs to select one option from several choices.
 **Example:**
 ```html
 <div class="flex justify-center">
-    <div class="card bg-base-200 w-full max-w-sm shadow-md">
+    <div class="card bg-base-200 w-full max-w-sm shadow-md" data-card-type="multiple-choice">
         <div class="card-body p-4">
-            <h2 class="card-title text-sm">Choose a Response Style</h2>
-            <p class="text-xs mb-2">How would you like me to respond?</p>
-            <ul class="text-xs space-y-1">
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="radio" name="response-style" class="radio radio-xs" checked />
-                        <span>Concise and brief</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="radio" name="response-style" class="radio radio-xs" />
-                        <span>Detailed explanation</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="radio" name="response-style" class="radio radio-xs" />
-                        <span>Step-by-step guide</span>
-                    </label>
-                </li>
-            </ul>
-            <div class="card-actions justify-end mt-2">
-                <button class="btn btn-primary btn-xs">Confirm</button>
-            </div>
+            <form data-card-form>
+                <h2 class="card-title text-sm">Choose a Response Style</h2>
+                <p class="text-xs mb-2">How would you like me to respond?</p>
+                <ul class="text-xs space-y-1">
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="radio" name="response-style" value="concise" class="radio radio-xs" checked />
+                            <span>Concise and brief</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="radio" name="response-style" value="detailed" class="radio radio-xs" />
+                            <span>Detailed explanation</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="radio" name="response-style" value="step-by-step" class="radio radio-xs" />
+                            <span>Step-by-step guide</span>
+                        </label>
+                    </li>
+                </ul>
+                <div class="card-actions justify-end mt-2">
+                    <button type="submit" class="btn btn-primary btn-xs" data-card-action="submit">Confirm</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 ```
+
+**Data Attributes:**
+- `data-card-type="multiple-choice"` - Identifies this as a radio selection card
+- `data-card-form` - Marks the form for card submission handling
+- `data-card-action="submit"` - Identifies the submit button
+- `name="response-style"` - Form field name for data extraction
+- `value="..."` - Value for each radio option
 
 ### 3. Multiple Select (Checkbox) Cards
 
@@ -101,43 +126,52 @@ Used when user can select multiple options from a list.
 **Example:**
 ```html
 <div class="flex justify-center">
-    <div class="card bg-base-200 w-full max-w-sm shadow-md">
+    <div class="card bg-base-200 w-full max-w-sm shadow-md" data-card-type="multiple-select">
         <div class="card-body p-4">
-            <h2 class="card-title text-sm">Select Topics to Include</h2>
-            <p class="text-xs mb-2">Which sections should I include in the report?</p>
-            <ul class="text-xs space-y-1">
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="checkbox" class="checkbox checkbox-xs" checked />
-                        <span>Executive Summary</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="checkbox" class="checkbox checkbox-xs" checked />
-                        <span>Financial Analysis</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="checkbox" class="checkbox checkbox-xs" />
-                        <span>Market Research</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="cursor-pointer flex items-center gap-2">
-                        <input type="checkbox" class="checkbox checkbox-xs" checked />
-                        <span>Recommendations</span>
-                    </label>
-                </li>
-            </ul>
-            <div class="card-actions justify-end mt-2">
-                <button class="btn btn-primary btn-xs">Generate Report</button>
-            </div>
+            <form data-card-form>
+                <h2 class="card-title text-sm">Select Topics to Include</h2>
+                <p class="text-xs mb-2">Which sections should I include in the report?</p>
+                <ul class="text-xs space-y-1">
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="checkbox" name="topics" value="executive-summary" class="checkbox checkbox-xs" checked />
+                            <span>Executive Summary</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="checkbox" name="topics" value="financial-analysis" class="checkbox checkbox-xs" checked />
+                            <span>Financial Analysis</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="checkbox" name="topics" value="market-research" class="checkbox checkbox-xs" />
+                            <span>Market Research</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="checkbox" name="topics" value="recommendations" class="checkbox checkbox-xs" checked />
+                            <span>Recommendations</span>
+                        </label>
+                    </li>
+                </ul>
+                <div class="card-actions justify-end mt-2">
+                    <button type="submit" class="btn btn-primary btn-xs" data-card-action="submit">Generate Report</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 ```
+
+**Data Attributes:**
+- `data-card-type="multiple-select"` - Identifies this as a checkbox selection card
+- `data-card-form` - Marks the form for card submission handling
+- `data-card-action="submit"` - Identifies the submit button
+- `name="topics"` - Common name for all checkboxes (creates an array of values)
+- `value="..."` - Value for each checkbox option
 
 ### 4. Content Preview with Feedback Cards
 
@@ -153,32 +187,41 @@ Used to show drafted content (email, message, document) with options to revise o
 **Example:**
 ```html
 <div class="flex justify-center">
-    <div class="card bg-base-100 border border-base-300 w-full max-w-sm shadow-md">
+    <div class="card bg-base-100 border border-base-300 w-full max-w-sm shadow-md" data-card-type="content-preview">
         <div class="card-body p-4">
-            <h2 class="card-title text-sm">Email Draft</h2>
-            <div class="bg-base-200 p-3 rounded text-xs mb-3">
-                <div class="mb-2">
-                    <strong>To:</strong> team@company.com<br/>
-                    <strong>Subject:</strong> Q4 Planning Meeting
+            <form data-card-form>
+                <h2 class="card-title text-sm">Email Draft</h2>
+                <div class="bg-base-200 p-3 rounded text-xs mb-3">
+                    <div class="mb-2">
+                        <strong>To:</strong> team@company.com<br/>
+                        <strong>Subject:</strong> Q4 Planning Meeting
+                    </div>
+                    <div class="text-xs opacity-80">
+                        Hi Team,<br/><br/>
+                        I hope this message finds you well. I wanted to schedule our Q4 planning meeting for next week. Please review the attached agenda and let me know your availability.<br/><br/>
+                        Best regards
+                    </div>
                 </div>
-                <div class="text-xs opacity-80">
-                    Hi Team,<br/><br/>
-                    I hope this message finds you well. I wanted to schedule our Q4 planning meeting for next week. Please review the attached agenda and let me know your availability.<br/><br/>
-                    Best regards
+                <textarea
+                    name="feedback"
+                    class="textarea textarea-bordered textarea-sm w-full text-xs"
+                    placeholder="Provide feedback or request changes..."
+                    rows="2"></textarea>
+                <div class="card-actions justify-end mt-2 gap-2">
+                    <button type="submit" class="btn btn-ghost btn-xs" data-card-action="revise">Revise</button>
+                    <button type="submit" class="btn btn-primary btn-xs" data-card-action="send">Send Draft</button>
                 </div>
-            </div>
-            <textarea
-                class="textarea textarea-bordered textarea-sm w-full text-xs"
-                placeholder="Provide feedback or request changes..."
-                rows="2"></textarea>
-            <div class="card-actions justify-end mt-2 gap-2">
-                <button class="btn btn-ghost btn-xs">Revise</button>
-                <button class="btn btn-primary btn-xs">Send Draft</button>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 ```
+
+**Data Attributes:**
+- `data-card-type="content-preview"` - Identifies this as a content preview card
+- `data-card-form` - Marks the form for card submission handling
+- `data-card-action="revise"` / `data-card-action="send"` - Identifies which action was taken
+- `name="feedback"` - Form field name for the feedback textarea
 
 ## DaisyUI Component Reference
 
