@@ -51,33 +51,59 @@ async def get_claude_response(user_message: str) -> dict[str, str]:
     response_data = {"message": "", "html": ""}
     fallback_text = ""
 
-    async with ClaudeSDKClient(options) as client:
-        await client.query(user_message)
+    try:
+        async with ClaudeSDKClient(options) as client:
+            await client.query(user_message)
 
-        async for msg in client.receive_response():
-            if isinstance(msg, SystemMessage):
-                # Capture session ID from init message
-                if msg.subtype == "init" and "session_id" in msg.data:
-                    session_id = msg.data["session_id"]
-            elif isinstance(msg, ResultMessage):
-                # Check for structured output in ResultMessage
-                if hasattr(msg, "structured_output") and msg.structured_output:
-                    response_data = msg.structured_output
-            elif isinstance(msg, AssistantMessage):
-                # Fallback: collect text blocks from assistant messages
-                for block in msg.content:
-                    if isinstance(block, TextBlock):
-                        fallback_text += block.text + " "
+            async for msg in client.receive_response():
+                if isinstance(msg, SystemMessage):
+                    # Capture session ID from init message
+                    if msg.subtype == "init" and "session_id" in msg.data:
+                        session_id = msg.data["session_id"]
+                        print(f"[DEBUG] Session ID: {session_id}")
+                elif isinstance(msg, ResultMessage):
+                    # Check for structured output in ResultMessage
+                    if hasattr(msg, "structured_output") and msg.structured_output:
+                        response_data = msg.structured_output
+                        print(f"[DEBUG] Structured output received: {response_data}")
+                    else:
+                        print(f"[DEBUG] ResultMessage but no structured_output")
+                elif isinstance(msg, AssistantMessage):
+                    # Fallback: collect text blocks from assistant messages
+                    for block in msg.content:
+                        if isinstance(block, TextBlock):
+                            fallback_text += block.text + " "
+                            print(f"[DEBUG] AssistantMessage text: {block.text[:100]}...")
 
-    # If no structured output was received, use fallback text
-    if (
-        not response_data.get("message")
-        and not response_data.get("html")
-        and fallback_text
-    ):
-        response_data = {"message": fallback_text.strip(), "html": ""}
+        # If no structured output was received, use fallback text
+        if (
+            not response_data.get("message")
+            and not response_data.get("html")
+            and fallback_text
+        ):
+            response_data = {"message": fallback_text.strip(), "html": ""}
+            print(f"[DEBUG] Using fallback text")
 
-    return response_data
+        print(f"[DEBUG] Final response_data: {response_data}")
+
+        # Ensure we always return something valid
+        if not response_data.get("message") and not response_data.get("html"):
+            print("[WARNING] Empty response detected, returning default message")
+            response_data = {
+                "message": "I apologize, but I encountered an issue generating a response. Could you please try again?",
+                "html": ""
+            }
+
+        return response_data
+
+    except Exception as e:
+        print(f"[ERROR] Exception in get_claude_response: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "message": f"Sorry, I encountered an error: {str(e)}",
+            "html": ""
+        }
 
 
 def create_messages_from_response(response: dict[str, str]) -> list:
@@ -156,6 +182,8 @@ async def card_action():
         action = data.get("action")
         form_data = data.get("data", {})
 
+        print(f"[DEBUG] Card action received - card_id: {card_id}, action: {action}, data: {form_data}")
+
         if not card_id or not action:
             return jsonify(
                 {"status": "error", "message": "card_id and action are required"}
@@ -177,12 +205,15 @@ async def card_action():
                 break
 
         if not card_found:
+            print(f"[ERROR] Card not found: {card_id}")
             return jsonify({"status": "error", "message": "Card not found"}), 404
 
         # Create a context message for Claude
         context_message = f"User responded to {card_type or 'interactive card'} with action '{action}'"
         if form_data:
             context_message += f" and data: {form_data}"
+
+        print(f"[DEBUG] Context message for Claude: {context_message}")
 
         # Add card interaction to message history for context
         messages.append(
@@ -200,6 +231,8 @@ async def card_action():
 
         # Convert response to message objects
         new_messages = create_messages_from_response(claude_response)
+
+        print(f"[DEBUG] New messages to return: {new_messages}")
 
         # Add all new messages to history
         messages.extend(new_messages)

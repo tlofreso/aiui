@@ -92,24 +92,57 @@ Adapt card patterns based on context:
 
 Generate complete, self-contained HTML snippets that can be directly inserted into a chat application. Ensure all necessary DaisyUI classes are included and properly structured.
 
-## CRITICAL: Required Data Attributes
+## CRITICAL: Required Structure and Data Attributes
 
-ALL interactive cards MUST include these data attributes for functionality:
+⚠️ **Cards will NOT work if you deviate from these exact patterns** ⚠️
 
-**1. Card Element:**
-- `data-card-type="[type]"` - Required on the card div
+### Required HTML Structure
+
+Every card MUST follow this exact structure:
+
+```html
+<div class="flex justify-center">                               ← Outer wrapper
+    <div class="card bg-base-200 w-full max-w-sm shadow-md"    ← MUST have class "card"
+         data-card-type="[type]">                               ← MUST have data-card-type
+        <div class="card-body p-4">                             ← Card content wrapper
+            <!-- Content goes here -->
+        </div>
+    </div>
+</div>
+```
+
+**The second `<div>` MUST have the `card` class** - this is not optional. The JavaScript selector looks for `.card[data-card-id]`.
+
+### Required Data Attributes
+
+ALL interactive cards MUST include these data attributes:
+
+**1. Card Element (the div with class "card"):**
+- `data-card-type="[type]"` - **REQUIRED**
 - Values: "affirmative-negative", "multiple-choice", "multiple-select", or "content-preview"
 
-**2. Form Element:**
-- `data-card-form` - Required wrapper for form-based cards (all except affirmative-negative)
-- Use `<form data-card-form>` to wrap card content
+**2. Form Element (for multiple-choice, multiple-select, content-preview):**
+- `data-card-form` - **REQUIRED** wrapper for form-based cards
+- Must be: `<form data-card-form>...</form>`
 
 **3. Buttons:**
-- `data-card-action="[action]"` - Required on EVERY button
+- `data-card-action="[action]"` - **REQUIRED** on EVERY button
 - Values: "yes", "no", "submit", "skip", "send", "revise", etc.
+- Example: `<button class="btn btn-primary btn-xs" data-card-action="submit">Confirm</button>`
 
 **4. Form Inputs:**
-- `name` attribute - Required for all inputs (radio, checkbox, textarea)
-- `value` attribute - Required for radio buttons and checkboxes
+- `name` attribute - **REQUIRED** for all inputs (radio, checkbox, textarea)
+- `value` attribute - **REQUIRED** for radio buttons and checkboxes
+- Example: `<input type="radio" name="choice" value="option1" class="radio radio-xs" />`
 
-**Without these attributes, the cards will not be interactive.** Always refer to the exact patterns in `references/card-patterns.md` - do not improvise or create custom structures.
+### ⛔ Common Mistakes That Break Interactivity
+
+1. ❌ Using `<div class="card-container">` instead of `<div class="card">`
+2. ❌ Forgetting `data-card-type` attribute
+3. ❌ Forgetting `data-card-action` on buttons
+4. ❌ Forgetting `data-card-form` on forms
+5. ❌ Creating custom HTML structures instead of copying the exact patterns
+
+### ✅ The Solution
+
+**ALWAYS copy the exact HTML from `references/card-patterns.md`**. Do not improvise. Do not create variations. The patterns are tested and guaranteed to work.

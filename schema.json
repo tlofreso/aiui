@@ -1,0 +1,18 @@
+{
+  "type": "json_schema",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Optional text message intended for the human user. Can be empty string if only sending HTML."
+      },
+      "html": {
+        "type": "string",
+        "description": "Optional HTML content containing an HTML chat card. Must be valid, complete HTML following the chat-card-skill patterns. Can be empty string if only sending a message."
+      }
+    },
+    "required": ["message", "html"],
+    "additionalProperties": false
+  }
+}
